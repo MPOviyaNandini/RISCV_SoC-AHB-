@@ -3,28 +3,56 @@ module Instruction_Memory (
     input  logic        reset,
     input  logic        HSEL1,
     input  logic        rd_en_rom,
-    input  logic [31:0] address_rom,
+    input  logic [31:0] address_rom,  // word address
     output logic [31:0] instruction
 );
 
-    // Define ROM with 5 entries
-    logic [31:0] rom [0:4];
-    logic [2:0]  rom_index;
+    logic [31:0] mem [0:255];  // 256 words = 1KB
 
-    // Derive 4-byte aligned word address (byte offset/4)
-    assign rom_index = address_rom[4:2]; // Use [4:2] for correct word-aligned indexing
+    // Initialize ROM contents
+    initial begin
+        mem[0]  = 32'hfc010113;
+        mem[1]  = 32'h02112e23;
+        mem[2]  = 32'h02812c23;
+        mem[3]  = 32'h04010413;
+        mem[4]  = 32'hfc042223;
+        mem[5]  = 32'h00100793;
+        mem[6]  = 32'hfcf42423;
+        mem[7]  = 32'h00200793;
+        mem[8]  = 32'hfef42623;
+        mem[9]  = 32'h0580006f;
+        mem[10] = 32'hfec42783;
+        mem[11] = 32'hfff78713;
+        mem[12] = 32'hfc440793;
+        mem[13] = 32'h00271713;
+        mem[14] = 32'h00f707b3;
+        mem[15] = 32'h0007a703;
+        mem[16] = 32'hfec42783;
+        mem[17] = 32'hffe78693;
+        mem[18] = 32'hfc440793;
+        mem[19] = 32'h00269693;
+        mem[20] = 32'h00f687b3;
+        mem[21] = 32'h0007a783;
+        mem[22] = 32'h00f70733;
+        mem[23] = 32'hfec42683;
+        mem[24] = 32'hfc440793;
+        mem[25] = 32'h00269693;
+        mem[26] = 32'h00f687b3;
+        mem[27] = 32'h00e7a023;
+        mem[28] = 32'hfec42783;
+        mem[29] = 32'h00178793;
+        mem[30] = 32'hfef42623;
+        mem[31] = 32'hfec42703;
+        mem[32] = 32'h00900793;
+        mem[33] = 32'hfae7d2e3;
+        mem[34] = 32'h0000006f;
+    end
 
-    always_ff @(posedge clk or posedge reset) begin
-        if (reset) begin
-            rom[0] <= 32'h002081b3;  // add x3, x1, x2
-            rom[1] <= 32'h40218233;  // sub x4, x3, x2
-            rom[2] <= 32'h0020c2b3;  // add x5, x1, x2
-            rom[3] <= 32'h0020e333;  // add x6, x1, x2 (optional)
-            rom[4] <= 32'h0020f3b3;  // add x7, x1, x2 (optional)
-            instruction <= 32'b0;
-        end else if (rd_en_rom && HSEL1 && rom_index <= 3'd4) begin
-            instruction <= rom[rom_index];
-        end else begin
+    always_ff @(posedge clk) begin
+        if (!reset && HSEL1 && rd_en_rom) begin
+           instruction = mem[address_rom[9:2]]; 
+        end
+        else begin
             instruction <= 32'b0;
         end
     end
