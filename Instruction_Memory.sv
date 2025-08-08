@@ -1,4 +1,4 @@
-module Instruction_Memory (
+/*module Instruction_Memory (
     input  logic        clk,
     input  logic        reset,
     input  logic        HSEL1,
@@ -53,6 +53,46 @@ module Instruction_Memory (
            instruction = mem[address_rom[9:2]]; 
         end
         else begin
+            instruction <= 32'b0;
+        end
+    end
+
+endmodule*/
+
+
+module Instruction_Memory (
+    input  logic        clk,
+    input  logic        reset,
+    input  logic        HSEL1,
+    input  logic        rd_en_rom,
+    input  logic [31:0] address_rom,  // word address
+    output logic [31:0] instruction
+);
+
+    logic [31:0] mem [0:255];  // 256 words = 1KB
+
+    // Initialize ROM contents
+    initial begin
+        // Zero out all memory locations first
+        for (int i = 0; i < 256; i++) begin
+            mem[i] = 32'b0;
+        end
+
+        // Custom program starts here
+        mem[0] = 32'h000AB2B7; // lui x5, 0x00AB
+        mem[1] = 32'h0CD28293; // addi x5, x5, 0xCD
+       mem[2] = 32'h00050513; // addi x10, x10, 0,
+       mem[3] = 32'h00552223; // sw x5, 0(x10)
+        //mem[3]=32'h01220213;//addi x4,x4,0x12
+        mem[4] = 32'h00052203; // lw x4, 0(x10)
+        // All remaining memory locations (mem[5] to mem[255]) remain zero
+    end
+
+    // Output instruction if enabled
+    always_ff @(posedge clk) begin
+        if (!reset && HSEL1 && rd_en_rom) begin
+            instruction <= mem[address_rom[9:2]];
+        end else begin
             instruction <= 32'b0;
         end
     end
